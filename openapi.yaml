@@ -1,0 +1,23 @@
+openapi: 3.0.3
+info:
+  title: demo
+  description: demo
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  /foo:
+    get:
+      summary: foo
+      responses:
+        '200':
+          description: OK
+      operationId: get-foo
+  /bar:
+    post:
+      summary: bar
+      responses:
+        '200':
+          description: OK
+      operationId: post-bar
+
