@@ -4,7 +4,7 @@
 Features:
 
 - add prefix to paths in json openapi file
-- 
+
 ## Install
 
 ```bash
