@@ -6,18 +6,81 @@ info:
 servers:
   - url: 'http://localhost:8080'
 paths:
-  /foo:
+  '/foo/{fieldA}':
     get:
       summary: foo
       responses:
         '200':
           description: OK
       operationId: get-foo
+      parameters:
+        - name: fieldC
+          in: query
+          required: true
+          schema:
+            type: string
+          description: this is fieldC
+        - name: fieldB
+          in: header
+          schema:
+            type: boolean
+          description: this is fieldB
+    parameters:
+      - schema:
+          type: number
+        name: fieldA
+        in: path
+        required: true
+        description: this is fieldA
+    post:
+      summary: PostFoo
+      operationId: post-foo
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: boolean
+      description: ''
   /bar:
     post:
       summary: bar
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SomeRes'
       operationId: post-bar
-
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SomeReq'
+components:
+  schemas:
+    SomeRes:
+      description: some res
+      title: ''
+      type: object
+      properties:
+        field1:
+          type: string
+        field2:
+          type: array
+          items:
+            type: integer
+      required:
+        - field1
+    SomeReq:
+      title: SomeReq
+      type: object
+      properties:
+        id:
+          type: string

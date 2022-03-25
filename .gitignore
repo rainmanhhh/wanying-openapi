@@ -3,5 +3,5 @@ node_modules
 dist
 *.log
 
-openapi.wanying.json
+openapi.onein.json
 .idea
