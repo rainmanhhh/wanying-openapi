@@ -5,7 +5,8 @@ import {
   OperationObject,
   ParameterObject,
   ReferenceObject,
-  RequestBodyObject, ResponseObject,
+  RequestBodyObject,
+  ResponseObject,
   SchemaObject
 } from 'openapi3-ts'
 import {PathItemObject, PathsObject} from 'openapi3-ts/src/model/OpenApi'
@@ -16,11 +17,19 @@ function readInputFile(inputFileName: string) {
   return openapiObj
 }
 
-function readConfigFile(configFileName: string) {
+interface Config {
+  prefix: string
+}
+
+const defaultConfig: Config = {
+  prefix: '/onein'
+}
+
+function readConfigFile(configFileName: string): Config {
   console.log('reading config file: ', configFileName)
-  const configObj: {
-    prefix: string
-  } = yaml.parse(fs.readFileSync(configFileName).toString())
+  const configObj: Config = fs.existsSync(configFileName) ?
+    yaml.parse(fs.readFileSync(configFileName).toString()) :
+    defaultConfig
   const prefix = configObj.prefix
   if (!prefix.startsWith('/') || prefix.endsWith('/'))
     throw new TypeError('prefix should start with `/` and not end with `/`')
