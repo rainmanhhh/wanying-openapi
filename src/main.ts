@@ -18,10 +18,10 @@ function readInputFile(inputFileName: string) {
 }
 
 interface Config {
-  prefix: string
+  prefix?: string
 }
 
-const defaultConfig: Config = {
+const defaultConfig: Required<Config> = {
   prefix: '/onein'
 }
 
@@ -29,10 +29,8 @@ function readConfigFile(configFileName: string): Config {
   console.log('reading config file: ', configFileName)
   const configObj: Config = fs.existsSync(configFileName) ?
     yaml.parse(fs.readFileSync(configFileName).toString()) :
-    defaultConfig
-  const prefix = configObj.prefix
-  if (!prefix.startsWith('/') || prefix.endsWith('/'))
-    throw new TypeError('prefix should start with `/` and not end with `/`')
+    {}
+  if (!configObj.prefix) configObj.prefix = defaultConfig.prefix
   return configObj
 }
 
@@ -92,7 +90,12 @@ function mergeParametersAndRequestBody(path: PathItemObject, operation: Operatio
     operation.parameters = undefined
     // todo support non-json content
     const originReqBody = (operation.requestBody as RequestBodyObject | undefined)?.content['application/json']?.schema
-    if (originReqBody) reqBody.properties['_jsonBody'] = originReqBody
+    if (originReqBody) {
+      const schemaName = getSchemaNameFromRefPath(originReqBody.$ref)
+      const originReqBodySchema = schemas[schemaName]!
+      Object.assign(reqBody.properties, originReqBodySchema.properties)
+      if (originReqBodySchema.required) reqBody.required.push(...originReqBodySchema.required)
+    }
     // set new requestBody ref to operation
     operation.requestBody = {
       content: {
@@ -133,7 +136,7 @@ function wrapResponseBody(path: PathItemObject, operation: OperationObject, sche
 
 /**
  * wrap raw array schema into object; wrap primitive array fields into object array fields
- * @param schemas the root node: components.schemas
+ * @param schemas the root node: schemas of components
  */
 function wrapSchemas(schemas: Record<string, SchemaObject>) {
   for (const k in schemas) {
@@ -186,6 +189,10 @@ function refPath(name: string) {
   return '#/components/schemas/' + name
 }
 
+function getSchemaNameFromRefPath(refPath: string) {
+  return refPath.substring('#/components/schemas/'.length)
+}
+
 function createSchema<K extends keyof SchemaObject>(p: { [k in K]: SchemaObject[k] }) {
   return p as Exclude<SchemaObject, typeof p> & { [k in keyof typeof p]-?: Exclude<SchemaObject[k], undefined> }
 }
@@ -205,7 +212,7 @@ export function main(
   const openapiObj = readInputFile(inputFileName)
   const configObj = readConfigFile(configFileName)
 
-  addPrefix(openapiObj, configObj.prefix)
+  addPrefix(openapiObj, configObj.prefix ?? '')
   convertApiFormat(openapiObj)
 
   return writeOutputFile(openapiObj, inputFileName)
