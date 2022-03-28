@@ -70,11 +70,15 @@ function convertApiFormat(openapiObj: OpenAPIObject) {
 
 function mergeParametersAndRequestBody(path: PathItemObject, operation: OperationObject, schemas: Record<string, SchemaObject>) {
   const parameters = (path.parameters ?? []).concat(operation.parameters ?? []) as ParameterObject[]
-  if (parameters.length > 0 || operation.requestBody) {
+  if (parameters.length > 0 || operation.requestBody) { // if operation does not have req body, there is no need to set method manually
     console.log('merge parameters and requestBody for operation [%s]', operation.operationId)
     const reqBody = createSchema({
       type: 'object',
-      properties: {},
+      properties: {
+        _method: {
+          type: 'string'
+        }
+      },
       required: []
     })
     for (const parameter of parameters) {
