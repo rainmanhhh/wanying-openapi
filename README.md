@@ -6,7 +6,8 @@ convert openapi file to onein standard format
 Features:
 
 - add custom common prefix to paths
-- add `/<HttpMethod>` suffix to paths and change methods of operations to `post` 
+- add `/<HttpMethod>` suffix to paths and change methods of operations to `post`
+- replace `/{` by `/[` and `}/` by `]/` in path to avoid openapi generator error
 - add common parameters such as Authorization in header 
 - merge parameters(in query, path and header) into request body
 - if there's already a request body in operation, it will be merged with parameters, 

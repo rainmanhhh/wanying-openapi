@@ -60,13 +60,18 @@ function convertApiFormat(openapiObj: OpenAPIObject, commonParameters: Parameter
   const newPaths: PathsObject = {}
   for (const key in openapiObj.paths) {
     const path: PathItemObject = openapiObj.paths[key]
-    for (const m of HttpMethods) {
-      const operation = path[m]
+    for (const httpMethod of HttpMethods) {
+      const operation = path[httpMethod]
       if (operation) {
-        let newPathItem: PathItemObject = newPaths[`${key}/${m}`]
+        const newKey = key.replace(
+          /\/{/g, '/['
+        ).replace(
+          /\//g, ']/'
+        ) + '/' + httpMethod
+        let newPathItem: PathItemObject = newPaths[newKey]
         if (newPathItem === undefined) {
           newPathItem = {}
-          newPaths[`${key}/${m}`] = newPathItem
+          newPaths[newKey] = newPathItem
         }
         newPathItem.post = operation
         mergeParametersAndRequestBody(path, operation, schemas, commonParameters)
