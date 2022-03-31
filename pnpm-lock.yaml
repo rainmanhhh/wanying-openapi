@@ -2,9 +2,9 @@ lockfileVersion: 5.3
 
 specifiers:
   '@egoist/prettier-config': 1.0.0
-  '@types/node': ^17.0.22
-  esno: ^0.14.1
-  openapi3-ts: ^2.0.2
+  '@types/node': 17.0.23
+  esno: 0.14.1
+  openapi3-ts: 2.0.2
   prettier: 2.5.1
   tsup: 5.11.13
   typescript: 4.5.4
@@ -16,7 +16,7 @@ dependencies:
 
 devDependencies:
   '@egoist/prettier-config': 1.0.0
-  '@types/node': 17.0.22
+  '@types/node': 17.0.23
   esno: 0.14.1
   openapi3-ts: 2.0.2
   prettier: 2.5.1
@@ -79,8 +79,8 @@ packages:
     resolution: {integrity: sha512-/ceqdqeRraGolFTcfoXNiqjyQhZzbINDngeoAq9GoHa8PPK1yNzTaxWjA6BFWp5Ua9JpXEMSS4s5i9tS0hOJtw==}
     dev: true
 
-  /@types/node/17.0.22:
-    resolution: {integrity: sha512-8FwbVoG4fy+ykY86XCAclKZDORttqE5/s7dyWZKLXTdv3vRy5HozBEinG5IqhvPXXzIZEcTVbuHlQEI6iuwcmw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npm.taobao.org/@types/node/-/node-17.0.22.tgz}
+  /@types/node/17.0.23:
+    resolution: {integrity: sha512-UxDxWn7dl97rKVeVS61vErvw086aCYhDLyvRQZ5Rk65rZKepaFdm53GeqXaKBuOhED4e9uWq34IC3TdSdJJ2Gw==}
     dev: true
 
   /@types/parse-json/4.0.0:
@@ -822,7 +822,7 @@ packages:
     dev: true
 
   /isexe/2.0.0:
-    resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
+    resolution: {integrity: sha1-6PvzdNxVb/iUehDcsFctYz8s+hA=}
     dev: true
 
   /joycon/3.0.1:
