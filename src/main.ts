@@ -18,20 +18,23 @@ function readInputFile(inputFileName: string) {
 }
 
 interface Config {
-  prefix?: string
+  prefix?: string,
+  commonParameters?: ParameterObject[]
 }
 
 const defaultConfig: Required<Config> = {
-  prefix: '/onein'
+  prefix: '/onein',
+  commonParameters: []
 }
 
-function readConfigFile(configFileName: string): Config {
+function readConfigFile(configFileName: string) {
   console.log('reading config file: ', configFileName)
   const configObj: Config = fs.existsSync(configFileName) ?
     yaml.parse(fs.readFileSync(configFileName).toString()) :
     {}
   if (!configObj.prefix) configObj.prefix = defaultConfig.prefix
-  return configObj
+  if (!configObj.commonParameters) configObj.commonParameters = defaultConfig.commonParameters
+  return configObj as Required<Config>
 }
 
 function addPrefix(openapiObj: OpenAPIObject, prefix: string) {
@@ -43,22 +46,30 @@ function addPrefix(openapiObj: OpenAPIObject, prefix: string) {
   openapiObj.paths = newPaths
 }
 
+const HttpMethods = ['get', 'put', 'post', 'delete', 'head', 'options', 'trace', 'patch'] as const
+
 /**
  * convert api format to match onein standard
  * @param openapiObj
+ * @param commonParameters
  */
-function convertApiFormat(openapiObj: OpenAPIObject) {
-  console.log('converting api format')
+function convertApiFormat(openapiObj: OpenAPIObject, commonParameters: ParameterObject[]) {
+  console.log('converting api format, commonParameters: %o', commonParameters)
   const components = openapiObj.components ?? {}
   const schemas = components.schemas ?? {}
+  const newPaths: PathsObject = {}
   for (const key in openapiObj.paths) {
     const path: PathItemObject = openapiObj.paths[key]
-    const operations = [
-      path.get, path.put, path.post, path.delete, path.head, path.options, path.trace, path.patch
-    ]
-    for (const operation of operations) {
+    for (const m of HttpMethods) {
+      const operation = path[m]
       if (operation) {
-        mergeParametersAndRequestBody(path, operation, schemas)
+        let newPathItem: PathItemObject = newPaths[`${key}/${m}`]
+        if (newPathItem === undefined) {
+          newPathItem = {}
+          newPaths[`${key}/${m}`] = newPathItem
+        }
+        newPathItem.post = operation
+        mergeParametersAndRequestBody(path, operation, schemas, commonParameters)
         wrapResponseBody(path, operation, schemas)
       }
     }
@@ -66,19 +77,25 @@ function convertApiFormat(openapiObj: OpenAPIObject) {
   wrapSchemas(schemas)
   components.schemas = schemas
   openapiObj.components = components
+  openapiObj.paths = newPaths
 }
 
-function mergeParametersAndRequestBody(path: PathItemObject, operation: OperationObject, schemas: Record<string, SchemaObject>) {
-  const parameters = (path.parameters ?? []).concat(operation.parameters ?? []) as ParameterObject[]
+function mergeParametersAndRequestBody(
+  path: PathItemObject,
+  operation: OperationObject,
+  schemas: Record<string, SchemaObject>,
+  commonParameters: ParameterObject[]
+) {
+  const parameters = [
+    ...commonParameters,
+    ...path.parameters ?? [],
+    ...operation.parameters ?? []
+  ] as ParameterObject[]
   if (parameters.length > 0 || operation.requestBody) { // if operation does not have req body, there is no need to set method manually
     console.log('merge parameters and requestBody for operation [%s]', operation.operationId)
     const reqBody = createSchema({
       type: 'object',
-      properties: {
-        _method: {
-          type: 'string'
-        }
-      },
+      properties: {},
       required: []
     })
     for (const parameter of parameters) {
@@ -217,7 +234,7 @@ export function main(
   const configObj = readConfigFile(configFileName)
 
   addPrefix(openapiObj, configObj.prefix ?? '')
-  convertApiFormat(openapiObj)
+  convertApiFormat(openapiObj, configObj.commonParameters)
 
   return writeOutputFile(openapiObj, inputFileName)
 }

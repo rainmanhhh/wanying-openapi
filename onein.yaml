@@ -1,1 +1,5 @@
 prefix: /some/prefix
+commonParameters:
+  - name: Authorization
+    in: header
+    description: JWT
