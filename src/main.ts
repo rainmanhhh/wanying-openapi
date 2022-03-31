@@ -63,11 +63,11 @@ function convertApiFormat(openapiObj: OpenAPIObject, commonParameters: Parameter
     for (const httpMethod of HttpMethods) {
       const operation = path[httpMethod]
       if (operation) {
-        const newKey = key.replace(
+        const newKey = `${key}/${httpMethod}`.replace(
           /\/{/g, '/['
         ).replace(
           /}\//g, ']/'
-        ) + '/' + httpMethod
+        )
         let newPathItem: PathItemObject = newPaths[newKey]
         if (newPathItem === undefined) {
           newPathItem = {}
