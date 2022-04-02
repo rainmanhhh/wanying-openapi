@@ -144,17 +144,15 @@ function wrapResponseBody(path: PathItemObject, operation: OperationObject, sche
     const jsonRes = okBody.content['application/json']
     if (jsonRes) {
       const jsonSchema = jsonRes.schema!
-      if (!jsonSchema.$ref) {
-        const resSchemaName = '_res_' + operation.operationId
-        schemas[resSchemaName] = createSchema({
-          type: 'object',
-          properties: {
-            '_jsonBody': jsonSchema
-          }
-        })
-        jsonRes.schema = {
-          $ref: refPath(resSchemaName)
+      const resSchemaName = '_res_' + operation.operationId
+      schemas[resSchemaName] = createSchema({
+        type: 'object',
+        properties: {
+          '_jsonBody': jsonSchema
         }
+      })
+      jsonRes.schema = {
+        $ref: refPath(resSchemaName)
       }
     } // else non-json content todo support non-json content
   } // else empty response

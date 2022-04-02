@@ -1,6 +1,6 @@
 {
   "name": "onein-openapi",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "onein openapi prefix processor",
   "publishConfig": {
     "access": "public"
