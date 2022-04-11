@@ -6,7 +6,7 @@ specifiers:
   esno: 0.14.1
   openapi3-ts: 2.0.2
   prettier: 2.6.1
-  tsup: 5.12.1
+  tsup: 5.12.4
   typescript: 4.6.3
   vitest: 0.8.1
   yaml: ^2.0.0-11
@@ -20,7 +20,7 @@ devDependencies:
   esno: 0.14.1
   openapi3-ts: 2.0.2
   prettier: 2.6.1
-  tsup: 5.12.1_typescript@4.6.3
+  tsup: 5.12.4_typescript@4.6.3
   typescript: 4.6.3
   vitest: 0.8.1
 
@@ -144,13 +144,13 @@ packages:
       semver: 7.3.5
     dev: true
 
-  /bundle-require/3.0.4_esbuild@0.14.2:
+  /bundle-require/3.0.4_esbuild@0.14.29:
     resolution: {integrity: sha512-VXG6epB1yrLAvWVQpl92qF347/UXmncQj7J3U8kZEbdVZ1ZkQyr4hYeL/9RvcE8vVVdp53dY78Fd/3pqfRqI1A==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     peerDependencies:
       esbuild: '>=0.13'
     dependencies:
-      esbuild: 0.14.2
+      esbuild: 0.14.29
       load-tsconfig: 0.2.3
     dev: true
 
@@ -1236,8 +1236,8 @@ packages:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
 
-  /tsup/5.12.1_typescript@4.6.3:
-    resolution: {integrity: sha512-vI7E4T6+6n5guQ9UKUOkQmzd1n4V9abGK71lbnzJMLJspbkNby5zlwWvgvHafLdYCb1WXpjFuqqmNLjBA0Wz3g==}
+  /tsup/5.12.4_typescript@4.6.3:
+    resolution: {integrity: sha512-uUraITfIj2h6rXAdeaVUYrZ2Is9joLFyEGZN5mGAke874JojCizb2MCUcE0wGdcERtyob5mbbFUKkMgal8SlFw==}
     hasBin: true
     peerDependencies:
       typescript: ^4.1.0
@@ -1245,11 +1245,11 @@ packages:
       typescript:
         optional: true
     dependencies:
-      bundle-require: 3.0.4_esbuild@0.14.2
+      bundle-require: 3.0.4_esbuild@0.14.29
       cac: 6.7.12
       chokidar: 3.5.1
       debug: 4.3.1
-      esbuild: 0.14.2
+      esbuild: 0.14.29
       execa: 5.0.0
       globby: 11.0.4
       joycon: 3.0.1
