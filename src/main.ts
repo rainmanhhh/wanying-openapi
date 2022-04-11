@@ -196,7 +196,7 @@ function createArraySchemaWrappers(schemas: Record<string, SchemaObject>) {
  * @param schemas
  */
 function createPrimitiveSchemaWrappers(schemas: Record<string, SchemaObject>) {
-  for (const type of ['integer', 'number', 'string', 'boolean', 'null'] as const) {
+  for (const type of ['integer', 'number', 'string', 'boolean'] as const) {
     const refName = '_primitive_' + type
     schemas[refName] = createSchema({
       type: 'object',
