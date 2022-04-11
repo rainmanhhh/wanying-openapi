@@ -1,33 +1,35 @@
 
-# onein
+# onein-openapi
 
-convert openapi file to onein standard format
+将原始的openapi接口文件转成万应平台支持的格式
 
-Features:
+功能:
 
-- add custom common prefix to paths
-- add `/<HttpMethod>` suffix to paths and change methods of operations to `post`
-- replace `/{` by `/[` and `}/` by `]/` in path to avoid openapi generator error
-- add common parameters such as Authorization in header 
-- merge parameters(in query, path and header) into request body
-- if there's already a request body in operation, it will be merged with parameters, 
-  but only support one-level json body(any other types such as form will be ignored)
-- wrap response body into object
+- 在接口路径前添加公共的前缀，例如/gateway/serviceName
+- 将接口本身的method统一转为`post`，并把原来的method以`/<HttpMethod>`后缀形式添加到路径中
+- 将接口路径中的`/{`和`}/`替换为`/[`和`]/`以避免openapi generator生成代码时报错
+- 可通过配置文件为所有接口统一添加公共参数，例如http头中的Authorization 
+- 把path,query,header参数都合并到请求报文体中（会添加特定前缀）
+- 原始的请求报文只能使用json类型（object和非object均可），其他类型的请求报文暂不支持（例如form）
+- 响应报文会被统一包裹在json object中（不管其本身是否为json object），若有报错，则改为返回一个包含错误码和错误提示信息的json对象
 
-Config file example (default name is `onein.yaml`):
+配置文件例子(默认名称为`onein.yaml`):
 ```yaml
-prefix: /some/prefix # default value is `/onein`
+prefix: /some/prefix # 默认值为'/onein'
 commonParameters:
   - name: Authorization
     in: header
     description: JWT
 ```
 
-## Install
+## 安装
 
 ```bash
 npm i onein
 ```
+
+## 注意
+本工具只转换接口文档，实际处理请求需要[onein-proxy](https://github.com/rainmanhhh/onein-proxy) 
 
 ## License
 
