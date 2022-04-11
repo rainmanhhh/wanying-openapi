@@ -124,10 +124,6 @@ function mergeParametersAndRequestBody(
       const originReqBodySchema = unwrapRef(originReqBody.$ref, schemas, true)
       Object.assign(reqBody.properties, originReqBodySchema.properties)
       if (originReqBodySchema.required) addRequired(reqBody, ...originReqBodySchema.required)
-      if (originReqBody.$ref) { // remove origin ref target
-        const originReqBodySchemaName = getSchemaNameFromRefPath(originReqBody.$ref)
-        delete schemas[originReqBodySchemaName]
-      }
     }
     // set new requestBody ref to operation
     operation.requestBody = {
