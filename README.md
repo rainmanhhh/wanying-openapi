@@ -28,6 +28,11 @@ commonParameters:
 npm i onein
 ```
 
+## 使用方法
+安装完毕后，在所需转换的openapi接口文档（名称为openapi.yaml）所在的目录创建配置文件onein.yaml（内容参考上面的例子）
+
+然后在此目录下执行`onein`，则程序会自动输出一个`openapi.onein.json`文件，可直接用于万应平台API网关接口导入
+
 ## 注意
 本工具只转换接口文档，实际处理请求需要[onein-proxy](https://github.com/rainmanhhh/onein-proxy) 
 
