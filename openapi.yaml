@@ -63,6 +63,20 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SomeReq'
+  /array:
+    get:
+      summary: get array
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: get-array
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArrayReq'
+      description: ''
 components:
   schemas:
     SomeRes:
@@ -84,3 +98,13 @@ components:
       properties:
         id:
           type: string
+        sex:
+          $ref: '#/components/schemas/Sex'
+    ArrayReq:
+      title: ArrayReq
+      type: array
+      items:
+        type: string
+    Sex:
+      type: string
+      description: 1-male;2-female

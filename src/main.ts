@@ -57,6 +57,12 @@ function convertApiFormat(openapiObj: OpenAPIObject, commonParameters: Parameter
   console.log('converting api format, commonParameters: %o', commonParameters)
   const components = openapiObj.components ?? {}
   const schemas = components.schemas ?? {}
+  createArraySchemaWrappers(schemas)
+  for (const k in schemas) {
+    const o = schemas[k]
+    wrapPrimitiveArrays(schemas, k, o)
+  }
+  createPrimitiveSchemaWrappers(schemas)
   const newPaths: PathsObject = {}
   for (const key in openapiObj.paths) {
     const path: PathItemObject = openapiObj.paths[key]
@@ -79,7 +85,6 @@ function convertApiFormat(openapiObj: OpenAPIObject, commonParameters: Parameter
       }
     }
   }
-  wrapSchemas(schemas)
   components.schemas = schemas
   openapiObj.components = components
   openapiObj.paths = newPaths
@@ -117,8 +122,7 @@ function mergeParametersAndRequestBody(
     // todo support non-json content
     const originReqBody = (operation.requestBody as RequestBodyObject | undefined)?.content['application/json']?.schema
     if (originReqBody) {
-      const schemaName = getSchemaNameFromRefPath(originReqBody.$ref)
-      const originReqBodySchema = schemas[schemaName]!
+      const originReqBodySchema = getSchema(schemas, originReqBody.$ref, true)
       Object.assign(reqBody.properties, originReqBodySchema.properties)
       if (originReqBodySchema.required) reqBody.required.push(...originReqBodySchema.required)
     }
@@ -159,23 +163,36 @@ function wrapResponseBody(path: PathItemObject, operation: OperationObject, sche
 }
 
 /**
- * wrap raw array schema into object; wrap primitive array fields into object array fields
- * @param schemas the root node: schemas of components
+ * create wrappers for array schemas
+ * @param schemas
  */
-function wrapSchemas(schemas: Record<string, SchemaObject>) {
+function createArraySchemaWrappers(schemas: Record<string, SchemaObject>) {
+  const arrayWrappers: Record<string, SchemaObject> = {}
   for (const k in schemas) {
-    const s = schemas[k]
-    const o = s.type === 'object' ? s : createSchema({
-      type: 'object',
-      properties: {
-        '_origin': s
-      }
-    })
-    wrapPrimitiveArrays(o)
-    schemas[k] = o
+    const schema = schemas[k]
+    if (schema.type === 'array') {
+      arrayWrappers['_array_' + k] = createSchema({
+        type: 'object',
+        properties: {
+          '_v': {
+            $ref: refPath(k)
+          }
+        },
+        required: ['_v']
+      })
+    }
   }
-  // add wrapper types(for primitive values) to schemas
-  for (const type of ['integer', 'number', 'string', 'boolean'] as const) {
+  for (const k in arrayWrappers) {
+    schemas[k] = arrayWrappers[k]
+  }
+}
+
+/**
+ * create wrappers for primitive schemas
+ * @param schemas
+ */
+function createPrimitiveSchemaWrappers(schemas: Record<string, SchemaObject>) {
+  for (const type of ['integer', 'number', 'string', 'boolean', 'null'] as const) {
     const refName = '_primitive_' + type
     schemas[refName] = createSchema({
       type: 'object',
@@ -183,28 +200,39 @@ function wrapSchemas(schemas: Record<string, SchemaObject>) {
         '_v': createSchema({
           type
         })
-      }
+      },
+      required: ['_v']
     })
   }
 }
 
-
-function wrapPrimitiveArrays(schema: SchemaObject) {
-  for (const k in schema.properties) {
-    const field = schema.properties[k]
-    if (!field.$ref) { // skip ref because it will be processed in top level loop
-      const f = field as SchemaObject
-      if (f.type === 'array') {
-        const items = f.items!
-        if (!items.$ref) {
-          const itemSchema = items as SchemaObject
-          if (itemSchema.type !== 'object') {
-            f.items = {
-              $ref: refPath('_primitive_' + itemSchema.type)
-            } as ReferenceObject
-          }
-        }
+/**
+ * ignore non-object schema
+ * @param schemas
+ * @param schemaName
+ * @param schema
+ */
+function wrapPrimitiveArrays(schemas: Record<string, SchemaObject>, schemaName: string, schema: SchemaObject) {
+  if (schema.type === 'object') {
+    for (const k in schema.properties) {
+      const field = schema.properties[k]
+      if (typeof field.$ref !== 'string') { // skip ref because it will be processed in top level loop
+        wrapPrimitiveArray(schemas, field, `${schemaName}.${k}`)
       }
+    }
+  } else if (schema.type === 'array') {
+    wrapPrimitiveArray(schemas, schema, schemaName)
+  } // else primitive schemas
+}
+
+function wrapPrimitiveArray(schemas: Record<string, SchemaObject>, schema: SchemaObject, schemaName: string) {
+  if (schema.type === 'array') {
+    const itemSchema = unwrapRef(schema.items!, schemas)
+    if (itemSchema.type === 'array') throw new TypeError(`unsupported nested array type: [${schemaName}]`)
+    if (itemSchema.type !== 'object') {
+      schema.items = {
+        $ref: refPath('_primitive_' + itemSchema.type)
+      } as ReferenceObject
     }
   }
 }
@@ -214,7 +242,27 @@ function refPath(name: string) {
 }
 
 function getSchemaNameFromRefPath(refPath: string) {
-  return refPath.substring('#/components/schemas/'.length)
+  const prefix = '#/components/schemas/'
+  if (refPath.startsWith(prefix)) return refPath.substring(prefix.length)
+  else throw new TypeError(`unsupported non-local ref: ${refPath}`)
+}
+
+function getSchema(schemas: Record<string, SchemaObject>, refPath: string, returnWrapType = false) {
+  const schemaName = getSchemaNameFromRefPath(refPath)
+  const schema = schemas[schemaName]
+  if (!schema) throw new TypeError('ref target not found: ' + refPath)
+  if (returnWrapType && schema.type !== 'object') {
+    if (schema.type === 'array') return schemas['_array_' + schemaName]
+    else return schemas['_primitive_' + schema.type]
+  }
+  return schema
+}
+
+function unwrapRef(item: SchemaObject | ReferenceObject, schemas: Record<string, SchemaObject>) {
+  if (typeof item.$ref === 'string')
+    return getSchema(schemas, item.$ref)
+  else
+    return item as SchemaObject
 }
 
 function createSchema<K extends keyof SchemaObject>(p: { [k in K]: SchemaObject[k] }) {
