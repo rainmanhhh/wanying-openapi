@@ -105,15 +105,14 @@ function mergeParametersAndRequestBody(
     console.log('merge parameters and requestBody for operation [%s]', operation.operationId)
     const reqBody = createSchema({
       type: 'object',
-      properties: {},
-      required: []
+      properties: {}
     })
     for (const parameter of parameters) {
       const p = parameter
       const nameInReqObj = '_' + p.in + '_' + p.name
       const paramSchema: SchemaObject = p.schema ?? {type: 'string'}
       paramSchema.description = p.description
-      if (p.required) reqBody.required.push(nameInReqObj)
+      if (p.required) addRequired(reqBody, nameInReqObj)
       reqBody.properties[nameInReqObj] = paramSchema
     }
     // merge parameters into new requestBody
@@ -122,9 +121,13 @@ function mergeParametersAndRequestBody(
     // todo support non-json content
     const originReqBody = (operation.requestBody as RequestBodyObject | undefined)?.content['application/json']?.schema
     if (originReqBody) {
-      const originReqBodySchema = getSchema(schemas, originReqBody.$ref, true)
+      const originReqBodySchema = unwrapRef(originReqBody.$ref, schemas, true)
       Object.assign(reqBody.properties, originReqBodySchema.properties)
-      if (originReqBodySchema.required) reqBody.required.push(...originReqBodySchema.required)
+      if (originReqBodySchema.required) addRequired(reqBody, ...originReqBodySchema.required)
+      if (originReqBody.$ref) { // remove origin ref target
+        const originReqBodySchemaName = getSchemaNameFromRefPath(originReqBody.$ref)
+        delete schemas[originReqBodySchemaName]
+      }
     }
     // set new requestBody ref to operation
     operation.requestBody = {
@@ -139,6 +142,11 @@ function mergeParametersAndRequestBody(
     // deal with arrays
     schemas[reqSchemaName] = reqBody
   }
+}
+
+function addRequired(schema: SchemaObject, ...params: string[]) {
+  if (!schema.required) schema.required = []
+  schema.required.push(...params)
 }
 
 function wrapResponseBody(path: PathItemObject, operation: OperationObject, schemas: Record<string, SchemaObject>) {
@@ -258,9 +266,9 @@ function getSchema(schemas: Record<string, SchemaObject>, refPath: string, retur
   return schema
 }
 
-function unwrapRef(item: SchemaObject | ReferenceObject, schemas: Record<string, SchemaObject>) {
+function unwrapRef(item: SchemaObject | ReferenceObject, schemas: Record<string, SchemaObject>, returnWrapType = false) {
   if (typeof item.$ref === 'string')
-    return getSchema(schemas, item.$ref)
+    return getSchema(schemas, item.$ref, returnWrapType)
   else
     return item as SchemaObject
 }
