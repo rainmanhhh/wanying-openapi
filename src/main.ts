@@ -121,7 +121,7 @@ function mergeParametersAndRequestBody(
     // todo support non-json content
     const originReqBody = (operation.requestBody as RequestBodyObject | undefined)?.content['application/json']?.schema
     if (originReqBody) {
-      const originReqBodySchema = unwrapRef(originReqBody.$ref, schemas, true)
+      const originReqBodySchema = unwrapRef(originReqBody, schemas, true)
       Object.assign(reqBody.properties, originReqBodySchema.properties)
       if (originReqBodySchema.required) addRequired(reqBody, ...originReqBodySchema.required)
     }
