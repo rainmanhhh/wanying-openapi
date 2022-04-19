@@ -3,3 +3,10 @@ commonParameters:
   - name: Authorization
     in: header
     description: JWT
+commonResponse:
+  code:
+    type: integer
+    description: http code
+  message:
+    type: string
+    description: response message

@@ -30,18 +30,26 @@ npm i -g onein
 
 进入该目录，创建配置文件`onein.yaml`：
 ```yaml
-prefix: /onein-proxy/BAR # 默认值为'/onein'
-commonParameters:
+prefix: /onein-proxy/BAR # 所有的接口路径都将添加此前缀，默认值为'/onein'
+commonParameters: # 所有的接口都将添加此处定义的公共参数
   - name: Authorization
     in: header
     description: JWT
+commonResponse: # 所有的接口响应报文都将添加此处定义的公共响应字段
+  errorCode: 
+    type: integer
+    description: 错误码
+  errorMessage: 
+    type: string
+    description: 错误描述
 ```
 
 然后执行`onein`，则程序会自动输出一个`bar.onein.json`文件，可直接用于万应平台API网关接口导入
 
 
 ## 注意
-本工具只转换接口文档，实际处理请求需要[onein-proxy](https://github.com/rainmanhhh/onein-proxy) 
+- 本工具只转换接口文档，实际处理请求需要[onein-proxy](https://github.com/rainmanhhh/onein-proxy)
+- 暂不支持转换非json形式（例如`plain/text`）的返回报文，如果有，则会被直接忽略
 
 ## License
 

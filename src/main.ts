@@ -26,11 +26,13 @@ function readInputFile(inputFilePath: string) {
 interface Config {
   prefix?: string,
   commonParameters?: ParameterObject[]
+  commonResponse?: Record<string, SchemaObject>
 }
 
 const defaultConfig: Required<Config> = {
   prefix: '/onein',
-  commonParameters: []
+  commonParameters: [],
+  commonResponse: {}
 }
 
 /**
@@ -59,18 +61,21 @@ const HttpMethods = ['get', 'put', 'post', 'delete', 'head', 'options', 'trace',
 /**
  * convert api format to match onein standard
  * @param openapiObj
- * @param commonParameters
+ * @param config
  */
-function convertApiFormat(openapiObj: OpenAPIObject, commonParameters: ParameterObject[]) {
-  console.log('converting api format, commonParameters: %o', commonParameters)
+function convertApiFormat(openapiObj: OpenAPIObject, config: Required<Config>) {
+  console.log('converting api format')
   const components = openapiObj.components ?? {}
   const schemas = components.schemas ?? {}
+
   createArraySchemaWrappers(schemas)
   for (const k in schemas) {
     const o = schemas[k]
     wrapPrimitiveArrays(schemas, k, o)
   }
   createPrimitiveSchemaWrappers(schemas)
+  createCommonReponseSchema(schemas, config)
+
   const newPaths: PathsObject = {}
   for (const key in openapiObj.paths) {
     const path: PathItemObject = openapiObj.paths[key]
@@ -88,8 +93,8 @@ function convertApiFormat(openapiObj: OpenAPIObject, commonParameters: Parameter
           newPaths[newKey] = newPathItem
         }
         newPathItem.post = operation
-        mergeParametersAndRequestBody(path, operation, schemas, commonParameters)
-        wrapResponseBody(path, operation, schemas)
+        mergeParametersAndRequestBody(path, operation, schemas, config.commonParameters)
+        wrapResponseBody(path, operation, schemas, config)
       }
     }
   }
@@ -153,25 +158,37 @@ function addRequired(schema: SchemaObject, ...params: string[]) {
   schema.required.push(...params)
 }
 
-function wrapResponseBody(path: PathItemObject, operation: OperationObject, schemas: Record<string, SchemaObject>) {
-  const okBody = operation.responses['200'] as ResponseObject
-  if (okBody.content) {
-    console.log('wrapping response body for operation [%s]', operation.operationId)
-    const jsonRes = okBody.content['application/json']
-    if (jsonRes) {
-      const jsonSchema = jsonRes.schema!
-      const resSchemaName = '_res_' + operation.operationId
-      schemas[resSchemaName] = createSchema({
-        type: 'object',
-        properties: {
-          '_jsonBody': jsonSchema
-        }
+function wrapResponseBody(
+  path: PathItemObject, operation: OperationObject,
+  schemas: Record<string, SchemaObject>,
+  config: Required<Config>
+) {
+  console.log('wrapping response body for operation [%s]', operation.operationId)
+  const okRes = operation.responses['200'] as ResponseObject
+  if (!okRes) throw new TypeError('200 response not found for operation: ' + operation.operationId)
+  const contentKey = 'application/json'
+  if (!okRes.content) okRes.content = {}
+  if (okRes.content[contentKey]) {
+    const jsonRes = okRes.content[contentKey]
+    const jsonSchema = jsonRes.schema!
+    const resSchemaName = '_res_' + operation.operationId
+    schemas[resSchemaName] = createSchema({
+      type: 'object',
+      properties: Object.assign({}, config.commonResponse, {
+        '_jsonBody': jsonSchema
       })
-      jsonRes.schema = {
-        $ref: refPath(resSchemaName)
+    })
+    jsonRes.schema = {
+      $ref: refPath(resSchemaName)
+    }
+  } else {
+    // todo check non-json content(such as plainText) and wrap it with new json res
+    okRes.content[contentKey] = {
+      schema: {
+        $ref: refPath(commonResponseKey)
       }
-    } // else non-json content todo support non-json content
-  } // else empty response
+    }
+  }
 }
 
 /**
@@ -216,6 +233,19 @@ function createPrimitiveSchemaWrappers(schemas: Record<string, SchemaObject>) {
       required: ['_v']
     })
   }
+}
+
+const commonResponseKey = '_commonResponse'
+/**
+ * create schema for common response
+ * @param schemas
+ * @param config
+ */
+function createCommonReponseSchema(schemas: Record<string, SchemaObject>, config: Required<Config>) {
+  schemas[commonResponseKey] = createSchema({
+    type: 'object',
+    properties: Object.assign({}, config.commonResponse)
+  })
 }
 
 /**
@@ -308,9 +338,10 @@ export function main(
   }
   const openapiObj = readInputFile(inputFilePath)
   const configObj = readConfigFile(configFilePath)
+  console.log('config: %o', configObj)
 
   addPrefix(openapiObj, configObj.prefix ?? '')
-  convertApiFormat(openapiObj, configObj.commonParameters)
+  convertApiFormat(openapiObj, configObj)
 
-  return writeOutputFile(openapiObj,  outputFileNameWithoutExt)
+  return writeOutputFile(openapiObj, outputFileNameWithoutExt)
 }
