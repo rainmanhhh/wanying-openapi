@@ -10,10 +10,16 @@ import {
   SchemaObject
 } from 'openapi3-ts'
 import {PathItemObject, PathsObject} from 'openapi3-ts/src/model/OpenApi'
+import path from 'path'
 
-function readInputFile(inputFileName: string) {
-  console.log('reading input file: ', inputFileName)
-  const openapiObj: OpenAPIObject = yaml.parse(fs.readFileSync(inputFileName).toString())
+/**
+ *
+ * @param inputFilePath openapi spec file path
+ */
+function readInputFile(inputFilePath: string) {
+  console.log('reading input file: ', inputFilePath)
+  const fileContent = fs.readFileSync(inputFilePath).toString()
+  const openapiObj: OpenAPIObject = yaml.parse(fileContent)
   return openapiObj
 }
 
@@ -27,14 +33,16 @@ const defaultConfig: Required<Config> = {
   commonParameters: []
 }
 
-function readConfigFile(configFileName: string) {
-  console.log('reading config file: ', configFileName)
-  const configObj: Config = fs.existsSync(configFileName) ?
-    yaml.parse(fs.readFileSync(configFileName).toString()) :
+/**
+ *
+ * @param configFilePath onein config file path
+ */
+function readConfigFile(configFilePath: string) {
+  console.log('reading config file: ', configFilePath)
+  const configObj: Config = fs.existsSync(configFilePath) ?
+    yaml.parse(fs.readFileSync(configFilePath).toString()) :
     {}
-  if (!configObj.prefix) configObj.prefix = defaultConfig.prefix
-  if (!configObj.commonParameters) configObj.commonParameters = defaultConfig.commonParameters
-  return configObj as Required<Config>
+  return Object.assign({}, defaultConfig, configObj) as Required<Config>
 }
 
 function addPrefix(openapiObj: OpenAPIObject, prefix: string) {
@@ -273,23 +281,36 @@ function createSchema<K extends keyof SchemaObject>(p: { [k in K]: SchemaObject[
   return p as Exclude<SchemaObject, typeof p> & { [k in keyof typeof p]-?: Exclude<SchemaObject[k], undefined> }
 }
 
-function writeOutputFile(openapiObj: any, inputFileName: string) {
-  const outputFileName = inputFileName.replace('.yaml', '.onein.json')
+function writeOutputFile(openapiObj: OpenAPIObject, outputFileNameWithoutExt: string) {
+  const outputFileName = outputFileNameWithoutExt + '.onein.json'
   console.log('writing output file: ', outputFileName)
-  const outputString = JSON.stringify(openapiObj)
+  const outputString = JSON.stringify(openapiObj, undefined, 2)
   fs.writeFileSync(outputFileName, outputString)
   return outputFileName
 }
 
+/**
+ *
+ * @param inputFilePath openapi spec file path(such as openapi.yaml) or dir contains it. file type should be yaml
+ * @param configFilePath onein config file path. if {@link inputFilePath} is a dir, it will be used as base
+ */
 export function main(
-  inputFileName: string,
-  configFileName: string
+  inputFilePath: string = '.',
+  configFilePath: string = 'onein.yaml'
 ) {
-  const openapiObj = readInputFile(inputFileName)
-  const configObj = readConfigFile(configFileName)
+  const outputFileNameWithoutExt = path.basename(path.resolve(inputFilePath), path.extname(inputFilePath))
+
+  const stat = fs.lstatSync(inputFilePath)
+  if (stat.isDirectory()) {
+    const inputFileDir = inputFilePath
+    inputFilePath = inputFileDir + '/openapi.yaml'
+    configFilePath = inputFileDir + '/' + configFilePath
+  }
+  const openapiObj = readInputFile(inputFilePath)
+  const configObj = readConfigFile(configFilePath)
 
   addPrefix(openapiObj, configObj.prefix ?? '')
   convertApiFormat(openapiObj, configObj.commonParameters)
 
-  return writeOutputFile(openapiObj, inputFileName)
+  return writeOutputFile(openapiObj,  outputFileNameWithoutExt)
 }

@@ -1,7 +1,7 @@
 {
   "name": "onein-openapi",
-  "version": "0.0.12",
-  "description": "onein openapi prefix processor",
+  "version": "0.0.13",
+  "description": "convert openapi file to onein format. should be used with onein-proxy",
   "publishConfig": {
     "access": "public"
   },

@@ -3,5 +3,5 @@ node_modules
 dist
 *.log
 
-openapi.onein.json
+*.onein.json
 .idea
