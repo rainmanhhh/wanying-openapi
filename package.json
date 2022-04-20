@@ -20,7 +20,7 @@
     "build": "pnpm run build-fast -- --dts-resolve",
     "test": "vitest run",
     "prepublishOnly": "pnpm run build",
-    "debug": "esno src/index.ts his"
+    "debug": "esno src/index.ts"
   },
   "bin": {
     "onein": "dist/index.js"
