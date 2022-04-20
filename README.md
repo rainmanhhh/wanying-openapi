@@ -5,15 +5,17 @@
 
 功能:
 
-- 在接口路径前添加公共的前缀，例如/gateway/serviceName
+- 在接口路径前添加公共的前缀，例如`/gateway/serviceName`
 - 将接口本身的method统一转为`post`，并把原来的method以`/<HttpMethod>`后缀形式添加到路径中
 - 将接口路径中的`/{`和`}/`替换为`/[`和`]/`以避免openapi generator生成代码时报错
-- 可通过配置文件为所有接口统一添加公共参数，例如http头中的Authorization 
+- 可通过配置文件为所有接口统一添加公共参数，例如http头中的`Authorization`
 - 把path,query,header参数都合并到请求报文体中（会添加特定前缀）
 - 原始的请求报文只能使用json类型（object和非object均可），其他类型的请求报文暂不支持（例如form）
 - 响应报文会被统一包裹在json object中（不管其本身是否为json object），若有报错，则改为返回一个包含错误码和错误提示信息的json对象
 - allOf和anyOf类型的对象将被全部展开，只有allOf子类型的必填字段会被合并，而anyOf子类型的必填字段都会被忽略（当作非必填字段处理）
 - schema或字段描述长度最大只能为64，超长的会被截断
+- primitive数组将被转为对象数组：用预定义的object类型包裹primitive值，比如`[number]`转成`[$ref(#/components/schemas/_primitive_number)]`
+- 不支持嵌套的数组
 
 ## 安装
 
