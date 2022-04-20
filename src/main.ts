@@ -98,9 +98,65 @@ function convertApiFormat(openapiObj: OpenAPIObject, config: Required<Config>) {
       }
     }
   }
+  unwrapAllOfSchemas(schemas)
+  cutLongDescriptions(schemas)
   components.schemas = schemas
   openapiObj.components = components
   openapiObj.paths = newPaths
+}
+
+interface WithDescription {
+  description?: string
+}
+
+function cutDescription(d: WithDescription, max: number) {
+  if (d.description && d.description.length > max) d.description = d.description.substring(0, max - 3) + '...'
+}
+
+function cutLongDescriptions(schemas: Record<string, SchemaObject>) {
+  const max = 64 // onein platform limit
+  for (const k in schemas) {
+    const s = schemas[k]
+    cutDescription(s, max)
+    for (const pk in s.properties) {
+      const p = s.properties[pk] as SchemaObject
+      cutDescription(p, max)
+    }
+  }
+}
+
+function unwrapAllOfSchema(schemas: Record<string, SchemaObject>, schema: SchemaObject) {
+  if (schema.allOf && schema.allOf.length > 0) {
+    const newSchema = createSchema({
+      type: 'object',
+      properties: {}
+    })
+    for (const t of schema.allOf) {
+      const it = unwrapRef(t, schemas, true)
+      const p = unwrapAllOfSchema(schemas, it).properties
+      Object.assign(newSchema.properties, p)
+      if (it.required) addRequired(newSchema, ...it.required)
+    }
+    return newSchema
+  } else if (schema.anyOf && schema.anyOf.length > 0) {
+    const newSchema = createSchema({
+      type: 'object',
+      properties: {}
+    })
+    for (const t of schema.anyOf) {
+      const it = unwrapRef(t, schemas, true)
+      const p = unwrapAllOfSchema(schemas, it).properties
+      Object.assign(newSchema.properties, p)
+    }
+    return newSchema
+  } else return schema
+}
+
+function unwrapAllOfSchemas(schemas: Record<string, SchemaObject>) {
+  for (const k in schemas) {
+    const s = schemas[k]
+    schemas[k] = unwrapAllOfSchema(schemas, s)
+  }
 }
 
 function mergeParametersAndRequestBody(
@@ -133,10 +189,21 @@ function mergeParametersAndRequestBody(
     operation.parameters = undefined
     // todo support non-json content
     const originReqBody = (operation.requestBody as RequestBodyObject | undefined)?.content['application/json']?.schema
+    let finalReqBody: SchemaObject | ReferenceObject = reqBody
     if (originReqBody) {
       const originReqBodySchema = unwrapRef(originReqBody, schemas, true)
-      Object.assign(reqBody.properties, originReqBodySchema.properties)
-      if (originReqBodySchema.required) addRequired(reqBody, ...originReqBodySchema.required)
+      if (originReqBodySchema.anyOf) {
+        finalReqBody = createSchema({
+          anyOf: [originReqBodySchema, reqBody]
+        })
+      } else if (originReqBodySchema.allOf) {
+        finalReqBody = createSchema({
+          allOf: [...originReqBodySchema.allOf, reqBody]
+        })
+      } else {
+        Object.assign(reqBody.properties, originReqBodySchema.properties)
+        if (originReqBodySchema.required) addRequired(reqBody, ...originReqBodySchema.required)
+      }
     }
     // set new requestBody ref to operation
     operation.requestBody = {
@@ -149,7 +216,7 @@ function mergeParametersAndRequestBody(
       }
     } as RequestBodyObject
     // deal with arrays
-    schemas[reqSchemaName] = reqBody
+    schemas[reqSchemaName] = finalReqBody
   }
 }
 
@@ -293,13 +360,19 @@ function getSchema(schemas: Record<string, SchemaObject>, refPath: string, retur
   const schemaName = getSchemaNameFromRefPath(refPath)
   const schema = schemas[schemaName]
   if (!schema) throw new TypeError('ref target not found: ' + refPath)
-  if (returnWrapType && schema.type !== 'object') {
+  if (returnWrapType && schema.type !== 'object' && schema.type !== undefined) {
     if (schema.type === 'array') return schemas['_array_' + schemaName]
     else return schemas['_primitive_' + schema.type]
   }
   return schema
 }
 
+/**
+ * unwrap ref to schema object. could not deal with complex target(such as allOf, anyOf)
+ * @param item
+ * @param schemas
+ * @param returnWrapType
+ */
 function unwrapRef(item: SchemaObject | ReferenceObject, schemas: Record<string, SchemaObject>, returnWrapType = false) {
   if (typeof item.$ref === 'string')
     return getSchema(schemas, item.$ref, returnWrapType)

@@ -1,6 +1,6 @@
 {
   "name": "onein-openapi",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "convert openapi file to onein format. should be used with onein-proxy",
   "publishConfig": {
     "access": "public"
@@ -20,7 +20,7 @@
     "build": "pnpm run build-fast -- --dts-resolve",
     "test": "vitest run",
     "prepublishOnly": "pnpm run build",
-    "debug": "esno src/index.ts"
+    "debug": "esno src/index.ts his"
   },
   "bin": {
     "onein": "dist/index.js"
