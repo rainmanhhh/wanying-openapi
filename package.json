@@ -34,7 +34,7 @@
     "prettier": "2.7.1",
     "tsup": "6.2.3",
     "typescript": "5.0.2",
-    "vitest": "0.8.1"
+    "vitest": "0.29.3"
   },
   "dependencies": {
     "yaml": "^2.0.0-11"
