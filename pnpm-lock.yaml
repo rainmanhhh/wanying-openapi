@@ -5,7 +5,7 @@ specifiers:
   '@types/node': 18.15.6
   esno: 0.16.3
   openapi3-ts: 3.2.0
-  prettier: 2.8.5
+  prettier: 2.8.6
   tsup: 6.7.0
   typescript: 5.0.2
   vitest: 0.29.3
@@ -19,7 +19,7 @@ devDependencies:
   '@types/node': 18.15.6
   esno: 0.16.3
   openapi3-ts: 3.2.0
-  prettier: 2.8.5
+  prettier: 2.8.6
   tsup: 6.7.0_typescript@5.0.2
   typescript: 5.0.2
   vitest: 0.29.3
@@ -1263,8 +1263,8 @@ packages:
       source-map-js: 1.0.2
     dev: true
 
-  /prettier/2.8.5:
-    resolution: {integrity: sha512-3gzuxrHbKUePRBB4ZeU08VNkUcqEHaUaouNt0m7LGP4Hti/NuB07C7PPTM/LkWqXoJYJn2McEo5+kxPNrtQkLQ==}
+  /prettier/2.8.6:
+    resolution: {integrity: sha512-mtuzdiBbHwPEgl7NxWlqOkithPyp4VN93V7VeHVWBF+ad3I5avc0RVDT4oImXQy9H/AqxA2NSQH8pSxHW6FYbQ==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
