@@ -28,7 +28,7 @@
   "license": "MIT",
   "devDependencies": {
     "@egoist/prettier-config": "1.0.0",
-    "@types/node": "18.15.3",
+    "@types/node": "18.15.6",
     "esno": "0.16.3",
     "openapi3-ts": "3.2.0",
     "prettier": "2.8.5",
