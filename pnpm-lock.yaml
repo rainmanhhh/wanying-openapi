@@ -16,8 +16,8 @@ devDependencies:
     specifier: 0.16.3
     version: 0.16.3
   openapi3-ts:
-    specifier: 4.0.3
-    version: 4.0.3
+    specifier: 4.0.4
+    version: 4.0.4
   prettier:
     specifier: 2.8.7
     version: 2.8.7
@@ -1166,8 +1166,8 @@ packages:
       mimic-fn: 2.1.0
     dev: true
 
-  /openapi3-ts@4.0.3:
-    resolution: {integrity: sha512-tpaX06UZhrgtd7N4S7neVXORCdwTsuvwOhv3KNtNtxNCyFeBybqxLqkE5k+nDp5lW0BZt9b+MfgLfC/36nEh/A==}
+  /openapi3-ts@4.0.4:
+    resolution: {integrity: sha512-06//rVJH/6SUElqB8N/5thFTIzO/lT9nrJAXIHoicvKsDw13EIskmX74Ve+Uhgn95Jh8y7kDIU9G+zo9KWWXvA==}
     dependencies:
       yaml: 2.2.1
     dev: true
