@@ -20,8 +20,8 @@ devDependencies:
     specifier: 0.16.3
     version: 0.16.3
   openapi3-ts:
-    specifier: 4.0.4
-    version: 4.0.4
+    specifier: 4.1.2
+    version: 4.1.2
   prettier:
     specifier: 3.0.0
     version: 3.0.0
@@ -1170,10 +1170,10 @@ packages:
       mimic-fn: 2.1.0
     dev: true
 
-  /openapi3-ts@4.0.4:
-    resolution: {integrity: sha512-06//rVJH/6SUElqB8N/5thFTIzO/lT9nrJAXIHoicvKsDw13EIskmX74Ve+Uhgn95Jh8y7kDIU9G+zo9KWWXvA==}
+  /openapi3-ts@4.1.2:
+    resolution: {integrity: sha512-B7gOkwsYMZO7BZXwJzXCuVagym2xhqsrilVvV0dnq2Di4+iLUXKVX9gOK23ZqaAHZOwABXN0QTdW8QnkUTX6DA==}
     dependencies:
-      yaml: 2.2.1
+      yaml: 2.3.1
     dev: true
 
   /p-limit@4.0.0:
@@ -1720,8 +1720,8 @@ packages:
     engines: {node: '>= 12'}
     dev: false
 
-  /yaml@2.2.1:
-    resolution: {integrity: sha512-e0WHiYql7+9wr4cWMx3TVQrNwejKaEe7/rHNmQmqRjazfOP5W8PB6Jpebb5o6fIapbz9o9+2ipcaTM2ZwDI6lw==}
+  /yaml@2.3.1:
+    resolution: {integrity: sha512-2eHWfjaoXgTBC2jNM1LRef62VQa0umtvRiDSk6HSzW7RvS5YtkabJrwYLLEKWBc8a5U2PTSCs+dJjUTJdlHsWQ==}
     engines: {node: '>= 14'}
     dev: true
 
